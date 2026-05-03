@@ -2,6 +2,16 @@ import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { prisma } from "./db";
+import NextAuth from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id?: string;
+      email?: string | null;
+    };
+  }
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -53,13 +63,13 @@ export const authOptions: AuthOptions = {
 
   // 🔐 Attach user ID to session
   callbacks: {
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
+  async session({ session, token }) {
+    if (session.user && token.sub) {
+      session.user.id = token.sub;
+    }
+    return session;
   },
+},
 
   // 🔑 Required for production
   secret: process.env.NEXTAUTH_SECRET,
